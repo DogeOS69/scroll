@@ -79,6 +79,9 @@ type RelayerConfig struct {
 	FinalizeBatchWithoutProofTimeoutSec uint64 `json:"finalize_batch_without_proof_timeout_sec"`
 	// The timeout in seconds for finalizing a bundle without proof, only used when EnableTestEnvBypassFeatures is true.
 	FinalizeBundleWithoutProofTimeoutSec uint64 `json:"finalize_bundle_without_proof_timeout_sec"`
+
+	// Endpoint for submitting blobs to celestia
+	CelestiaSubmitEndpoint string `json:"celestia_submit_endpoint"`
 }
 
 // AlternativeGasTokenConfig The configuration for handling token exchange rates when updating the gas price oracle.

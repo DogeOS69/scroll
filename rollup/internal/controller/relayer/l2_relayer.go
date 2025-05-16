@@ -1,10 +1,13 @@
 package relayer
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
+	"net/http"
 	"sort"
 	"strings"
 	"time"
@@ -427,6 +430,8 @@ func (r *Layer2Relayer) ProcessPendingBatches() {
 	r.metrics.rollupL2RelayerProcessPendingBatchSuccessTotal.Add(float64(len(batchesToSubmit)))
 	r.metrics.rollupL2RelayerProcessBatchesPerTxCount.Set(float64(len(batchesToSubmit)))
 
+	r.submitCelestiaBlobs(blobs)
+
 	log.Info("Sent the commitBatches tx to layer1", "batches count", len(batchesToSubmit), "start index", firstBatch.Index, "start hash", firstBatch.Hash, "end index", lastBatch.Index, "end hash", lastBatch.Hash, "tx hash", txHash.String())
 }
 
@@ -446,6 +451,21 @@ func (r *Layer2Relayer) batchHashesFromContextID(contextID string) []string {
 	}
 
 	return []string{contextID}
+}
+
+func (r *Layer2Relayer) submitCelestiaBlobs(blobs []*kzg4844.Blob) {
+	for _, blob := range blobs {
+		blobBytes, err := json.Marshal(blob)
+		if err != nil {
+			return
+		}
+		blobBytesReader := bytes.NewReader(blobBytes)
+
+		request, _ := http.NewRequest("POST", r.cfg.CelestiaSubmitEndpoint, blobBytesReader)
+		client := &http.Client{}
+		result, err := client.Do(request)
+		fmt.Sprintf("%v", result)
+	}
 }
 
 type dbBatchWithChunksAndParent struct {
