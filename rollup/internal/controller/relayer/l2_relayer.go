@@ -464,7 +464,10 @@ func (r *Layer2Relayer) submitCelestiaBlobs(blobs []*kzg4844.Blob) {
 		request, _ := http.NewRequest("POST", r.cfg.CelestiaSubmitEndpoint, blobBytesReader)
 		client := &http.Client{}
 		result, err := client.Do(request)
-		fmt.Sprintf("%v", result)
+		if err != nil {
+			return
+		}
+		fmt.Printf("%v", result)
 	}
 }
 
