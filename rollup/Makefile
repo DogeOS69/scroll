@@ -28,9 +28,7 @@ clean: ## Empty out the bin folder
 	@rm -rf build/bin
 
 docker_push:
-	docker push scrolltech/gas-oracle:${IMAGE_VERSION}
-	docker push scrolltech/rollup-relayer:${IMAGE_VERSION}
+	docker push dogeos/rollup-relayer:${IMAGE_VERSION}
 
 docker:
-	DOCKER_BUILDKIT=1 docker build -t scrolltech/gas-oracle:${IMAGE_VERSION} ${REPO_ROOT_DIR}/ -f ${REPO_ROOT_DIR}/build/dockerfiles/gas_oracle.Dockerfile --platform=linux/amd64
-	DOCKER_BUILDKIT=1 docker build -t scrolltech/rollup-relayer:${IMAGE_VERSION} ${REPO_ROOT_DIR}/ -f ${REPO_ROOT_DIR}/build/dockerfiles/rollup_relayer.Dockerfile --platform=linux/amd64
+	DOCKER_BUILDKIT=1 docker build -t dogeos/rollup-relayer:${IMAGE_VERSION} ${REPO_ROOT_DIR}/ -f ${REPO_ROOT_DIR}/build/dockerfiles/rollup_relayer.Dockerfile --platform=linux/amd64
