@@ -3,7 +3,6 @@ package relayer
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -12,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/go-resty/resty/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/scroll-tech/da-codec/encoding"
@@ -454,20 +454,26 @@ func (r *Layer2Relayer) batchHashesFromContextID(contextID string) []string {
 }
 
 func (r *Layer2Relayer) submitCelestiaBlobs(blobs []*kzg4844.Blob) {
+	log.Info("Submitting blobs to Celestia", "blobs count", len(blobs))
 	for _, blob := range blobs {
-		blobBytes, err := json.Marshal(blob)
+		// blobBytes, err := (*blob).MarshalText()
+		blobBytes, err := hexutil.Bytes(blob[:]).MarshalText()
 		if err != nil {
+			log.Error("failed to MarshalText", "err", err)
 			return
 		}
-		blobBytesReader := bytes.NewReader(blobBytes)
+		blobBytesReader := bytes.NewReader(blobBytes[2:])
 
+		log.Info("making POST request to", r.cfg.CelestiaSubmitEndpoint)
 		request, _ := http.NewRequest("POST", r.cfg.CelestiaSubmitEndpoint, blobBytesReader)
 		client := &http.Client{}
 		result, err := client.Do(request)
 		if err != nil {
+			log.Error("failed to post", "err", err)
 			return
+		} else {
+			log.Info("submit celestia blob result:", result)
 		}
-		fmt.Printf("%v", result)
 	}
 }
 
