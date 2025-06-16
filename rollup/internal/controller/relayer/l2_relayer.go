@@ -389,6 +389,12 @@ func (r *Layer2Relayer) ProcessPendingBatches() {
 		return
 	}
 
+	err := r.submitCelestiaBlobs(blobs)
+	if err != nil {
+		log.Error("failed to post", "err", err)
+		return
+	}
+
 	txHash, err := r.commitSender.SendTransaction(r.contextIDFromBatches(batchesToSubmit), &r.cfg.RollupContractAddress, calldata, blobs, 0)
 	if err != nil {
 		if errors.Is(err, sender.ErrTooManyPendingBlobTxs) {
@@ -430,8 +436,6 @@ func (r *Layer2Relayer) ProcessPendingBatches() {
 	r.metrics.rollupL2RelayerProcessPendingBatchSuccessTotal.Add(float64(len(batchesToSubmit)))
 	r.metrics.rollupL2RelayerProcessBatchesPerTxCount.Set(float64(len(batchesToSubmit)))
 
-	r.submitCelestiaBlobs(blobs)
-
 	log.Info("Sent the commitBatches tx to layer1", "batches count", len(batchesToSubmit), "start index", firstBatch.Index, "start hash", firstBatch.Hash, "end index", lastBatch.Index, "end hash", lastBatch.Hash, "tx hash", txHash.String())
 }
 
@@ -453,10 +457,9 @@ func (r *Layer2Relayer) batchHashesFromContextID(contextID string) []string {
 	return []string{contextID}
 }
 
-func (r *Layer2Relayer) submitCelestiaBlobs(blobs []*kzg4844.Blob) {
+func (r *Layer2Relayer) submitCelestiaBlobs(blobs []*kzg4844.Blob) error {
 	log.Info("Submitting blobs to Celestia", "blobs count", len(blobs))
 	for _, blob := range blobs {
-		// blobBytes, err := (*blob).MarshalText()
 		blobBytes, err := hexutil.Bytes(blob[:]).MarshalText()
 		if err != nil {
 			log.Error("failed to MarshalText", "err", err)
@@ -469,11 +472,10 @@ func (r *Layer2Relayer) submitCelestiaBlobs(blobs []*kzg4844.Blob) {
 		client := &http.Client{}
 		result, err := client.Do(request)
 		if err != nil {
-			log.Error("failed to post", "err", err)
-			return
-		} else {
-			log.Info("submit celestia blob result:", result)
+			return err
 		}
+		log.Info("submit celestia blob result:", result)
+		return nil
 	}
 }
 
