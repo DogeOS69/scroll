@@ -389,9 +389,9 @@ func (r *Layer2Relayer) ProcessPendingBatches() {
 		return
 	}
 
-	err := r.submitCelestiaBlobs(blobs)
+	err = r.submitCelestiaBlobs(blobs)
 	if err != nil {
-		log.Error("failed to post", "err", err)
+		log.Error("failed to post blob to celestia", "err", err)
 		return
 	}
 
@@ -463,7 +463,7 @@ func (r *Layer2Relayer) submitCelestiaBlobs(blobs []*kzg4844.Blob) error {
 		blobBytes, err := hexutil.Bytes(blob[:]).MarshalText()
 		if err != nil {
 			log.Error("failed to MarshalText", "err", err)
-			return
+			return err
 		}
 		blobBytesReader := bytes.NewReader(blobBytes[2:])
 
@@ -475,8 +475,8 @@ func (r *Layer2Relayer) submitCelestiaBlobs(blobs []*kzg4844.Blob) error {
 			return err
 		}
 		log.Info("submit celestia blob result:", result)
-		return nil
 	}
+	return nil
 }
 
 type dbBatchWithChunksAndParent struct {
