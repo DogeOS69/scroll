@@ -3,7 +3,6 @@ package relayer
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -12,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/go-resty/resty/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/scroll-tech/da-codec/encoding"
@@ -389,6 +389,12 @@ func (r *Layer2Relayer) ProcessPendingBatches() {
 		return
 	}
 
+	err = r.submitCelestiaBlobs(blobs)
+	if err != nil {
+		log.Error("failed to post blob to celestia", "err", err)
+		return
+	}
+
 	txHash, err := r.commitSender.SendTransaction(r.contextIDFromBatches(batchesToSubmit), &r.cfg.RollupContractAddress, calldata, blobs, 0)
 	if err != nil {
 		if errors.Is(err, sender.ErrTooManyPendingBlobTxs) {
@@ -430,8 +436,6 @@ func (r *Layer2Relayer) ProcessPendingBatches() {
 	r.metrics.rollupL2RelayerProcessPendingBatchSuccessTotal.Add(float64(len(batchesToSubmit)))
 	r.metrics.rollupL2RelayerProcessBatchesPerTxCount.Set(float64(len(batchesToSubmit)))
 
-	r.submitCelestiaBlobs(blobs)
-
 	log.Info("Sent the commitBatches tx to layer1", "batches count", len(batchesToSubmit), "start index", firstBatch.Index, "start hash", firstBatch.Hash, "end index", lastBatch.Index, "end hash", lastBatch.Hash, "tx hash", txHash.String())
 }
 
@@ -453,22 +457,30 @@ func (r *Layer2Relayer) batchHashesFromContextID(contextID string) []string {
 	return []string{contextID}
 }
 
-func (r *Layer2Relayer) submitCelestiaBlobs(blobs []*kzg4844.Blob) {
+func (r *Layer2Relayer) submitCelestiaBlobs(blobs []*kzg4844.Blob) error {
+	log.Info("Submitting blobs to Celestia", "blobs count", len(blobs))
 	for _, blob := range blobs {
-		blobBytes, err := json.Marshal(blob)
+		blobBytes, err := hexutil.Bytes(blob[:]).MarshalText()
 		if err != nil {
-			return
+			log.Error("failed to MarshalText", "err", err)
+			return err
 		}
-		blobBytesReader := bytes.NewReader(blobBytes)
+		blobBytesReader := bytes.NewReader(blobBytes[2:])
 
+		log.Info("making POST request to", r.cfg.CelestiaSubmitEndpoint)
 		request, _ := http.NewRequest("POST", r.cfg.CelestiaSubmitEndpoint, blobBytesReader)
 		client := &http.Client{}
 		result, err := client.Do(request)
 		if err != nil {
-			return
+			return err
 		}
-		fmt.Printf("%v", result)
+		log.Info("submit celestia blob result:", result)
+		err = result.Body.Close()
+		if err != nil {
+			log.Error("failed to close response body", "err", err)
+		}
 	}
+	return nil
 }
 
 type dbBatchWithChunksAndParent struct {
