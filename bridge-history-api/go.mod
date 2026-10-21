@@ -2,7 +2,7 @@ module scroll-tech/bridge-history-api
 
 go 1.22
 
-toolchain go1.22.2
+toolchain go1.26.10
 
 require (
 	github.com/gin-contrib/cors v1.5.0

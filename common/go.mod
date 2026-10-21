@@ -2,7 +2,7 @@ module scroll-tech/common
 
 go 1.22
 
-toolchain go1.22.2
+toolchain go1.26.10
 
 require (
 	github.com/Masterminds/semver/v3 v3.2.1

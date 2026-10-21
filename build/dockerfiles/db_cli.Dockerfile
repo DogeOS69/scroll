@@ -1,5 +1,6 @@
 # Download Go dependencies
 FROM scrolltech/go-rust-builder:go-1.22-rust-nightly-2023-12-03 as base
+ENV GOTOOLCHAIN=go1.26.10
 
 WORKDIR /src
 COPY go.work* ./

@@ -1,5 +1,6 @@
 # Build libzkp dependency
 FROM scrolltech/go-rust-builder:go-1.22-rust-nightly-2023-12-03 as chef
+ENV GOTOOLCHAIN=go1.26.10
 WORKDIR app
 
 FROM chef as planner
@@ -21,6 +22,7 @@ RUN cargo build --release
 
 # Download Go dependencies
 FROM scrolltech/go-rust-builder:go-1.21-rust-nightly-2023-12-03 as base
+ENV GOTOOLCHAIN=go1.26.10
 WORKDIR /src
 COPY go.work* ./
 COPY ./rollup/go.* ./rollup/
