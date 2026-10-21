@@ -2,7 +2,7 @@ module scroll-tech/database
 
 go 1.22
 
-toolchain go1.22.2
+toolchain go1.26.10
 
 require (
 	github.com/jmoiron/sqlx v1.3.5

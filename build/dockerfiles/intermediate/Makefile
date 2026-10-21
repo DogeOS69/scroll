@@ -1,5 +1,5 @@
 ifeq ($(GO_VERSION),)
-  GO_VERSION=1.21
+  GO_VERSION=1.26.10
 endif
 ifeq ($(RUST_VERSION),)
   RUST_VERSION=nightly-2023-12-03

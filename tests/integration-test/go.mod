@@ -2,7 +2,7 @@ module scroll-tech/integration-test
 
 go 1.22
 
-toolchain go1.22.2
+toolchain go1.26.10
 
 require (
 	github.com/scroll-tech/da-codec v0.1.3-0.20250310095435-012aaee6b435

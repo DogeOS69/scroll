@@ -2,6 +2,8 @@ module scroll-tech/rollup
 
 go 1.22
 
+toolchain go1.26.10
+
 require (
 	github.com/agiledragon/gomonkey/v2 v2.12.0
 	github.com/consensys/gnark-crypto v0.16.0

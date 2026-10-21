@@ -2,6 +2,8 @@ module scroll-tech/coordinator
 
 go 1.22
 
+toolchain go1.26.10
+
 require (
 	github.com/appleboy/gin-jwt/v2 v2.9.1
 	github.com/gin-gonic/gin v1.9.1
